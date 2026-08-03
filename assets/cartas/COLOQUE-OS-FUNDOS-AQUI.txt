@@ -1,0 +1,9 @@
+Substitua/adicone nesta pasta os fundos com estes nomes exatos:
+
+bronze.webp
+silver.webp
+gold.webp
+toty.webp
+legend.webp
+
+As imagens podem ter qualquer proporção, mas fundos verticais próximos de 3:4 funcionam melhor.
