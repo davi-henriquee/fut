@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#07110e">
+  <meta name="description" content="EXP-FUT — gestão de jogadores, partidas e evolução da sua patota.">
+  <title>EXP-FUT | Gestão da Patota</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#" data-go="players" aria-label="EXP-FUT — início">
+        <span class="brand-mark">X</span>
+        <span class="brand-copy"><strong>EXP-FUT</strong><small>GESTÃO DA PATOTA</small></span>
+      </a>
+
+      <nav class="desktop-nav" aria-label="Navegação principal">
+        <button class="nav-btn active" data-screen="players"><span>◉</span> Jogadores</button>
+        <button class="nav-btn" data-screen="matches"><span>▰</span> Partidas</button>
+      </nav>
+
+      <button class="primary-btn compact" id="headerAction">+ Novo jogador</button>
+    </header>
+
+    <main>
+      <section class="screen active" id="playersScreen" aria-labelledby="playersTitle">
+        <div class="hero-row">
+          <div>
+            <p class="eyebrow">MEU CLUBE</p>
+            <h1 id="playersTitle">Seu elenco</h1>
+            <p class="hero-copy">Crie seus jogadores, acompanhe a evolução e transforme cada partida em história.</p>
+          </div>
+          <div class="summary-strip" aria-label="Resumo do elenco">
+            <div><strong id="playerCount">0</strong><span>Jogadores</span></div>
+            <div><strong id="squadAverage">—</strong><span>Overall médio</span></div>
+            <div><strong id="pendingCount">0</strong><span>Ajustes</span></div>
+          </div>
+        </div>
+
+        <div class="section-toolbar">
+          <div>
+            <h2>Plantel</h2>
+            <p>Clique em um jogador para abrir a carta completa e o histórico.</p>
+          </div>
+          <div class="toolbar-actions">
+            <button class="ghost-btn" id="exportDataBtn">↓ Exportar backup</button>
+            <label class="ghost-btn import-btn" for="importDataInput">↑ Importar backup<input id="importDataInput" type="file" accept="application/json,.json"></label>
+            <button class="primary-btn" id="newPlayerBtn">+ Novo jogador</button>
+          </div>
+        </div>
+
+        <div class="player-grid" id="playerGrid"></div>
+      </section>
+
+      <section class="screen" id="matchesScreen" aria-labelledby="matchesTitle">
+        <div class="hero-row matches-hero">
+          <div>
+            <p class="eyebrow">CENTRAL DE JOGO</p>
+            <h1 id="matchesTitle">Partidas</h1>
+            <p class="hero-copy">Monte lados equilibrados pelo overall e registre o placar final.</p>
+          </div>
+          <div class="summary-strip" aria-label="Resumo das partidas">
+            <div><strong id="matchCount">0</strong><span>Concluídas</span></div>
+            <div><strong id="totalGoals">0</strong><span>Gols</span></div>
+          </div>
+        </div>
+
+        <section class="match-builder" id="matchBuilder"></section>
+
+        <div class="section-toolbar history-toolbar">
+          <div>
+            <h2>Histórico de partidas</h2>
+            <p>Abra uma partida para conferir quem estava de cada lado.</p>
+          </div>
+        </div>
+        <div class="match-history" id="matchHistory"></div>
+      </section>
+    </main>
+
+    <nav class="mobile-nav" aria-label="Navegação principal móvel">
+      <button class="nav-btn active" data-screen="players"><span>◉</span>Jogadores</button>
+      <button class="nav-btn" data-screen="matches"><span>▰</span>Partidas</button>
+    </nav>
+  </div>
+
+  <dialog id="newPlayerDialog" class="modal small-modal">
+    <form method="dialog" class="modal-card" id="newPlayerForm">
+      <div class="modal-head">
+          <div><p class="eyebrow" id="playerFormEyebrow">NOVO ATLETA</p><h2 id="playerFormTitle">Criar jogador</h2></div>
+        <button class="icon-btn" type="button" data-close-dialog="newPlayerDialog" aria-label="Fechar">×</button>
+      </div>
+
+      <label class="photo-picker" for="playerPhoto">
+        <span class="photo-preview" id="photoPreview"><span>＋</span></span>
+        <span><strong id="photoPickerTitle">Adicionar foto</strong><small>JPG, PNG ou WEBP</small></span>
+        <input type="file" id="playerPhoto" accept="image/*">
+      </label>
+
+      <label class="field-label" for="playerName">Nome do jogador</label>
+      <input class="text-input" id="playerName" name="playerName" type="text" maxlength="28" placeholder="Ex.: Pedrinho" autocomplete="off" required>
+
+      <label class="switch-row">
+        <span><strong>É goleiro?</strong><small id="goalkeeperHint">Goleiros usam quatro atributos específicos.</small></span>
+        <input type="checkbox" id="isGoalkeeper">
+        <span class="switch" aria-hidden="true"></span>
+      </label>
+
+      <div class="form-actions">
+        <button class="ghost-btn" type="button" data-close-dialog="newPlayerDialog">Cancelar</button>
+        <button class="primary-btn" id="savePlayerBtn" value="default">Criar jogador</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="playerDialog" class="modal detail-modal">
+    <div class="modal-card player-detail-shell">
+      <button class="icon-btn floating-close" data-close-dialog="playerDialog" aria-label="Fechar">×</button>
+      <div id="playerDetail"></div>
+    </div>
+  </dialog>
+
+  <dialog id="matchDialog" class="modal detail-modal">
+    <div class="modal-card match-detail-shell">
+      <button class="icon-btn floating-close" data-close-dialog="matchDialog" aria-label="Fechar">×</button>
+      <div id="matchDetail"></div>
+    </div>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="vendor/html2canvas.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
