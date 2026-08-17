@@ -579,10 +579,10 @@
       </div>`;
   }
 
-  function balanceTeams() {
-    const players = [...state.players];
+  function balanceTeams(sourcePlayers = state.players, previousDraft = null) {
+    const players = [...sourcePlayers];
     const sizeA = Math.ceil(players.length / 2);
-    const previousSignature = state.draft ? matchupSignature(state.draft.teamA, state.draft.teamB) : null;
+    const previousSignature = previousDraft ? matchupSignature(previousDraft.teamA, previousDraft.teamB) : null;
     const candidates = new Map();
     const attempts = Math.min(1400, Math.max(240, players.length * 100));
 
@@ -655,11 +655,32 @@
       showToast("Crie pelo menos dois jogadores para gerar uma partida.", true);
       return;
     }
-    state.draft = balanceTeams();
+    state.draft = balanceTeams(state.players);
     saveState();
     setScreen("matches");
     renderMatches();
     showToast("Nova combinação equilibrada sorteada.");
+  }
+
+  function regenerateDraft() {
+    if (!state.draft) {
+      generateDraft();
+      return;
+    }
+    const presentIds = [...new Set([...state.draft.teamA, ...state.draft.teamB])];
+    const presentPlayers = playersByIds(presentIds);
+    if (presentPlayers.length < 2) {
+      showToast("Mantenha pelo menos dois jogadores presentes para gerar novamente.", true);
+      return;
+    }
+    const presentSet = new Set(presentIds);
+    const excludedIds = state.players.map((player) => player.id).filter((id) => !presentSet.has(id));
+    const nextDraft = balanceTeams(presentPlayers, state.draft);
+    nextDraft.excluded = excludedIds;
+    state.draft = nextDraft;
+    saveState();
+    renderMatches();
+    showToast("Nova combinação gerada somente com os jogadores presentes.");
   }
 
   function moveDraftPlayer(playerId, fromSide) {
@@ -921,7 +942,8 @@
       if (adjustButton) changeAdjustment(adjustButton.dataset.adjustKey, Number(adjustButton.dataset.adjustStep));
       if (event.target.closest("[data-apply-adjustment]")) applyAdjustment();
 
-      if (event.target.closest("[data-generate-match], [data-regenerate-match]")) generateDraft();
+      if (event.target.closest("[data-generate-match]")) generateDraft();
+      if (event.target.closest("[data-regenerate-match]")) regenerateDraft();
       if (event.target.closest("[data-cancel-draft]")) {
         state.draft = null; saveState(); renderMatches(); showToast("Preparação da partida cancelada.");
       }
