@@ -47,6 +47,7 @@
           <div class="toolbar-actions">
             <button class="ghost-btn" id="exportDataBtn">↓ Exportar backup</button>
             <label class="ghost-btn import-btn" for="importDataInput">↑ Importar backup<input id="importDataInput" type="file" accept="application/json,.json"></label>
+            <button class="ghost-btn" id="archivedPlayersBtn">Arquivados</button>
             <button class="primary-btn" id="newPlayerBtn">+ Novo jogador</button>
           </div>
         </div>
@@ -112,6 +113,17 @@
         <button class="primary-btn" id="savePlayerBtn" value="default">Criar jogador</button>
       </div>
     </form>
+  </dialog>
+
+  <dialog id="archivedPlayersDialog" class="modal archived-modal">
+    <div class="modal-card archived-modal-card">
+      <div class="modal-head">
+        <div><p class="eyebrow">FORA DO ELENCO</p><h2>Jogadores arquivados</h2></div>
+        <button class="icon-btn" type="button" data-close-dialog="archivedPlayersDialog" aria-label="Fechar">×</button>
+      </div>
+      <p class="archived-intro">Eles mantêm carta, atributos e histórico, mas não entram na média nem nos sorteios.</p>
+      <div class="archived-player-list" id="archivedPlayerList"></div>
+    </div>
   </dialog>
 
   <dialog id="playerDialog" class="modal detail-modal">

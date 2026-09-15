@@ -153,6 +153,17 @@ h1 { margin-bottom: 13px; font-size: clamp(44px, 6vw, 78px); line-height: .93; l
 .import-btn { position: relative; display: inline-flex; align-items: center; justify-content: center; }
 .import-btn input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
 
+.archived-modal { width: min(94vw, 760px); }
+.archived-modal-card { padding: 26px; }
+.archived-intro { margin: -10px 0 20px; color: var(--muted); font-size: 12px; line-height: 1.6; }
+.archived-player-list { display: grid; gap: 9px; }
+.archived-player-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 9px; border: 1px solid var(--line); border-radius: 12px; background: rgba(255,255,255,.025); }
+.archived-player-row.goalkeeper-row { border-color: rgba(99,191,255,.16); background: linear-gradient(90deg, rgba(55,139,200,.09), rgba(255,255,255,.022)); }
+.archived-player-open { min-width: 0; display: flex; align-items: center; gap: 13px; padding: 0; border: 0; color: var(--ink); background: transparent; cursor: pointer; text-align: left; }
+.archived-player-open:hover .list-player-copy strong { color: var(--green); }
+.restore-player-btn { padding: 10px 13px; }
+.archived-empty { margin-top: 4px; }
+
 .player-grid { display: block; }
 .player-list-head,
 .player-list-row {
@@ -403,6 +414,7 @@ h1 { margin-bottom: 13px; font-size: clamp(44px, 6vw, 78px); line-height: .93; l
 .detail-title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
 .detail-title-row .ghost-btn { flex: 0 0 auto; padding: 9px 12px; }
 .detail-actions { display: flex; flex: 0 0 auto; gap: 7px; }
+.detail-actions { flex-wrap: wrap; justify-content: flex-end; }
 .detail-title h2 { margin-bottom: 7px; font-size: 29px; letter-spacing: -1px; }
 .detail-title p { margin-bottom: 0; color: var(--muted); font-size: 11px; }
 .pending-adjustment { margin-top: 25px; padding: 18px; border: 1px solid rgba(255,216,97,.23); border-radius: 13px; background: rgba(255,216,97,.055); }
@@ -533,6 +545,10 @@ h1 { margin-bottom: 13px; font-size: clamp(44px, 6vw, 78px); line-height: .93; l
   .detail-title-row { display: block; }
   .detail-actions { margin-top: 15px; }
   .detail-actions .ghost-btn { flex: 1; }
+  .detail-actions .primary-btn, .detail-actions .danger-btn { flex: 1; }
+  .archived-modal-card { padding: 20px; }
+  .archived-player-row { grid-template-columns: 1fr; }
+  .restore-player-btn { width: 100%; }
   .match-detail-shell { padding: 28px 17px; }
   .match-detail-teams { grid-template-columns: 1fr; }
   .player-history-row { grid-template-columns: 1fr auto; }

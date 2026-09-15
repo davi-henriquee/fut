@@ -47,8 +47,18 @@
     try {
       const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY));
       if (!parsed || !Array.isArray(parsed.players) || !Array.isArray(parsed.matches)) return emptyState();
-      parsed.players = parsed.players.map((player) => ({ ...player, pending: normalizePending(player.pending, Boolean(player.goalkeeper)) }));
+      parsed.players = parsed.players.map((player) => ({
+        ...player,
+        archived: Boolean(player.archived),
+        pending: normalizePending(player.pending, Boolean(player.goalkeeper)),
+      }));
       parsed.draft = parsed.draft || null;
+      if (parsed.draft) {
+        const activeIds = new Set(parsed.players.filter((player) => !player.archived).map((player) => player.id));
+        parsed.draft.teamA = Array.isArray(parsed.draft.teamA) ? parsed.draft.teamA.filter((id) => activeIds.has(id)) : [];
+        parsed.draft.teamB = Array.isArray(parsed.draft.teamB) ? parsed.draft.teamB.filter((id) => activeIds.has(id)) : [];
+        parsed.draft.excluded = Array.isArray(parsed.draft.excluded) ? parsed.draft.excluded.filter((id) => activeIds.has(id)) : [];
+      }
       return parsed;
     } catch {
       return emptyState();
@@ -104,6 +114,7 @@
         name: player.name.trim().slice(0, 28),
         photo: typeof player.photo === "string" && player.photo.startsWith("data:image/") ? player.photo : "",
         goalkeeper,
+        archived: Boolean(player.archived),
         attrs,
         pending: normalizePending(player.pending, goalkeeper),
         createdAt: typeof player.createdAt === "string" ? player.createdAt : new Date().toISOString(),
@@ -127,11 +138,12 @@
       };
     });
 
+    const activeIds = new Set(copy.players.filter((player) => !player.archived).map((player) => player.id));
     if (copy.draft && Array.isArray(copy.draft.teamA) && Array.isArray(copy.draft.teamB)) {
       copy.draft = {
-        teamA: copy.draft.teamA.filter((id) => ids.has(id)),
-        teamB: copy.draft.teamB.filter((id) => ids.has(id)),
-        excluded: Array.isArray(copy.draft.excluded) ? copy.draft.excluded.filter((id) => ids.has(id)) : [],
+        teamA: copy.draft.teamA.filter((id) => activeIds.has(id)),
+        teamB: copy.draft.teamB.filter((id) => activeIds.has(id)),
+        excluded: Array.isArray(copy.draft.excluded) ? copy.draft.excluded.filter((id) => activeIds.has(id)) : [],
         scoreA: copy.draft.scoreA === undefined ? "" : String(copy.draft.scoreA),
         scoreB: copy.draft.scoreB === undefined ? "" : String(copy.draft.scoreB),
       };
@@ -178,6 +190,14 @@
 
   function attributesFor(player) {
     return player.goalkeeper ? GOALKEEPER_ATTRIBUTES : FIELD_ATTRIBUTES;
+  }
+
+  function activePlayers() {
+    return state.players.filter((player) => !player.archived);
+  }
+
+  function archivedPlayers() {
+    return state.players.filter((player) => player.archived);
   }
 
   function overall(player) {
@@ -249,27 +269,31 @@
 
   function renderAll() {
     renderPlayers();
+    renderArchivedPlayers();
     renderMatches();
     updateHeaderAction();
   }
 
   function renderPlayers() {
     const grid = $("#playerGrid");
-    const pendingTotal = state.players.reduce((sum, player) => sum + player.pending.length, 0);
-    $("#playerCount").textContent = state.players.length;
+    const players = activePlayers();
+    const archived = archivedPlayers();
+    const pendingTotal = players.reduce((sum, player) => sum + player.pending.length, 0);
+    $("#playerCount").textContent = players.length;
     $("#pendingCount").textContent = pendingTotal;
-    $("#squadAverage").textContent = state.players.length
-      ? formatOverall(state.players.reduce((sum, player) => sum + overall(player), 0) / state.players.length)
+    $("#squadAverage").textContent = players.length
+      ? formatOverall(players.reduce((sum, player) => sum + overall(player), 0) / players.length)
       : "—";
+    $("#archivedPlayersBtn").textContent = archived.length ? `Arquivados (${archived.length})` : "Arquivados";
 
-    if (!state.players.length) {
+    if (!players.length) {
       grid.innerHTML = `
         <div class="empty-state">
           <div>
             <span class="empty-state-icon">＋</span>
-            <h3>Seu elenco começa aqui</h3>
-            <p>Crie o primeiro jogador. Todos começam com 60 em cada atributo e uma carta Bronze.</p>
-            <button class="primary-btn" data-create-player>+ Criar primeiro jogador</button>
+            <h3>${archived.length ? "Nenhum jogador ativo" : "Seu elenco começa aqui"}</h3>
+            <p>${archived.length ? "Restaure um jogador arquivado ou crie um novo para voltar a montar partidas." : "Crie o primeiro jogador. Todos começam com 60 em cada atributo e uma carta Bronze."}</p>
+            ${archived.length ? `<button class="ghost-btn" data-open-archived>Ver arquivados</button>` : `<button class="primary-btn" data-create-player>+ Criar primeiro jogador</button>`}
           </div>
         </div>`;
       return;
@@ -278,7 +302,7 @@
     grid.innerHTML = `
       <div class="player-list-head" aria-hidden="true">
         <span>Jogador</span><span>Overall</span><span>Partidas</span><span>Vitórias</span><span>Aproveitamento</span><span></span>
-      </div>` + [...state.players]
+      </div>` + [...players]
       .sort((a, b) => overall(b) - overall(a) || a.name.localeCompare(b.name, "pt-BR"))
       .map((player) => {
         const stats = playerStats(player);
@@ -300,6 +324,27 @@
       }).join("");
   }
 
+  function renderArchivedPlayers() {
+    const container = $("#archivedPlayerList");
+    if (!container) return;
+    const players = archivedPlayers().sort((a, b) => overall(b) - overall(a) || a.name.localeCompare(b.name, "pt-BR"));
+    if (!players.length) {
+      container.innerHTML = `<div class="history-empty archived-empty">Nenhum jogador arquivado.</div>`;
+      return;
+    }
+    container.innerHTML = players.map((player) => {
+      const stats = playerStats(player);
+      return `
+        <div class="archived-player-row ${player.goalkeeper ? "goalkeeper-row" : ""}">
+          <button class="archived-player-open" data-archived-player-id="${player.id}" aria-label="Abrir carta de ${escapeHtml(player.name)}">
+            <span class="list-avatar">${photoMarkup(player, true)}</span>
+            <span class="list-player-copy"><strong>${escapeHtml(player.name)}</strong><span>${player.goalkeeper ? "Goleiro" : tierFor(overall(player)).name} · ${formatOverall(overall(player))} OVR · ${stats.matches} ${stats.matches === 1 ? "partida" : "partidas"}</span></span>
+          </button>
+          <button class="primary-btn restore-player-btn" data-unarchive-player="${player.id}">Restaurar</button>
+        </div>`;
+    }).join("");
+  }
+
   function openPlayer(playerId) {
     const player = state.players.find((item) => item.id === playerId);
     if (!player) return;
@@ -307,6 +352,36 @@
     adjustmentDraft = Object.fromEntries(attributesFor(player).map((item) => [item.key, 0]));
     renderPlayerDetail();
     $("#playerDialog").showModal();
+  }
+
+  function openArchivedPlayers() {
+    renderArchivedPlayers();
+    $("#archivedPlayersDialog").showModal();
+  }
+
+  function archivePlayer(playerId) {
+    const player = state.players.find((item) => item.id === playerId);
+    if (!player || player.archived) return;
+    player.archived = true;
+    if (state.draft) {
+      state.draft.teamA = state.draft.teamA.filter((id) => id !== playerId);
+      state.draft.teamB = state.draft.teamB.filter((id) => id !== playerId);
+      state.draft.excluded = state.draft.excluded.filter((id) => id !== playerId);
+    }
+    saveState();
+    if ($("#playerDialog").open) $("#playerDialog").close();
+    renderAll();
+    showToast(`${player.name} foi arquivado e não entrará nos próximos sorteios.`);
+  }
+
+  function unarchivePlayer(playerId) {
+    const player = state.players.find((item) => item.id === playerId);
+    if (!player || !player.archived) return;
+    player.archived = false;
+    saveState();
+    renderAll();
+    if ($("#playerDialog").open && detailPlayerId === playerId) renderPlayerDetail();
+    showToast(`${player.name} voltou ao elenco ativo.`);
   }
 
   function matchNumber(match) {
@@ -349,13 +424,16 @@
         <div class="detail-side">
           <div class="detail-title detail-title-row">
             <div>
-              <p class="eyebrow">${player.goalkeeper ? "GOLEIRO" : "JOGADOR DE LINHA"}</p>
+              <p class="eyebrow">${player.archived ? "ARQUIVADO · " : ""}${player.goalkeeper ? "GOLEIRO" : "JOGADOR DE LINHA"}</p>
               <h2>${escapeHtml(player.name)}</h2>
               <p>Carta ${tier.name} · Overall ${formatOverall(overall(player))} · ${history.length} ${history.length === 1 ? "partida" : "partidas"}</p>
             </div>
             <div class="detail-actions">
               <button class="ghost-btn" data-export-card="${player.id}">↓ Exportar carta</button>
               <button class="ghost-btn" data-edit-player="${player.id}">Editar</button>
+              ${player.archived
+                ? `<button class="primary-btn" data-unarchive-player="${player.id}">Restaurar</button>`
+                : `<button class="danger-btn" data-archive-player="${player.id}">Arquivar</button>`}
             </div>
           </div>
           ${player.pending.length ? adjustmentMarkup(player) : ""}
@@ -487,16 +565,17 @@
   function renderMatchBuilder() {
     const builder = $("#matchBuilder");
     if (!state.draft) {
-      const canGenerate = state.players.length >= 2;
-      const goalkeeperCount = state.players.filter((player) => player.goalkeeper).length;
+      const players = activePlayers();
+      const canGenerate = players.length >= 2;
+      const goalkeeperCount = players.filter((player) => player.goalkeeper).length;
       builder.innerHTML = `
         <div class="builder-empty">
           <div>
             <p class="eyebrow">MONTAGEM AUTOMÁTICA</p>
             <h2>Pronto para a próxima?</h2>
             <p>O EXP-FUT compara o overall de todo o elenco e distribui os jogadores entre dois lados com a menor diferença possível.</p>
-            ${state.players.length % 2 === 1 && state.players.length > 1 ? `<p class="builder-warning">Seu elenco tem número ímpar; um lado ficará com um jogador a mais até você ajustar.</p>` : ""}
-            ${state.players.length >= 2 && goalkeeperCount < 2 ? `<p class="builder-warning">Cadastre pelo menos dois goleiros para garantir um em cada lado.</p>` : ""}
+            ${players.length % 2 === 1 && players.length > 1 ? `<p class="builder-warning">Seu elenco ativo tem número ímpar; um lado ficará com um jogador a mais até você ajustar.</p>` : ""}
+            ${players.length >= 2 && goalkeeperCount < 2 ? `<p class="builder-warning">Mantenha pelo menos dois goleiros ativos para garantir um em cada lado.</p>` : ""}
           </div>
           <button class="primary-btn" data-generate-match ${canGenerate ? "" : "disabled"}>⚡ Gerar partida</button>
         </div>`;
@@ -579,7 +658,7 @@
       </div>`;
   }
 
-  function balanceTeams(sourcePlayers = state.players, previousDraft = null) {
+  function balanceTeams(sourcePlayers = activePlayers(), previousDraft = null) {
     const players = [...sourcePlayers];
     const sizeA = Math.ceil(players.length / 2);
     const previousSignature = previousDraft ? matchupSignature(previousDraft.teamA, previousDraft.teamB) : null;
@@ -651,11 +730,12 @@
   }
 
   function generateDraft() {
-    if (state.players.length < 2) {
-      showToast("Crie pelo menos dois jogadores para gerar uma partida.", true);
+    const players = activePlayers();
+    if (players.length < 2) {
+      showToast("Mantenha pelo menos dois jogadores ativos para gerar uma partida.", true);
       return;
     }
-    state.draft = balanceTeams(state.players);
+    state.draft = balanceTeams(players);
     saveState();
     setScreen("matches");
     renderMatches();
@@ -668,13 +748,13 @@
       return;
     }
     const presentIds = [...new Set([...state.draft.teamA, ...state.draft.teamB])];
-    const presentPlayers = playersByIds(presentIds);
+    const presentPlayers = playersByIds(presentIds).filter((player) => !player.archived);
     if (presentPlayers.length < 2) {
       showToast("Mantenha pelo menos dois jogadores presentes para gerar novamente.", true);
       return;
     }
     const presentSet = new Set(presentIds);
-    const excludedIds = state.players.map((player) => player.id).filter((id) => !presentSet.has(id));
+    const excludedIds = activePlayers().map((player) => player.id).filter((id) => !presentSet.has(id));
     const nextDraft = balanceTeams(presentPlayers, state.draft);
     nextDraft.excluded = excludedIds;
     state.draft = nextDraft;
@@ -704,6 +784,8 @@
 
   function addDraftPlayer(playerId, toSide) {
     if (!state.draft) return;
+    const player = state.players.find((item) => item.id === playerId);
+    if (!player || player.archived) return;
     state.draft.excluded = state.draft.excluded.filter((id) => id !== playerId);
     const key = toSide === "A" ? "teamA" : "teamB";
     if (!state.draft[key].includes(playerId)) state.draft[key].push(playerId);
@@ -860,6 +942,7 @@
       name,
       photo: pendingPhoto,
       goalkeeper,
+      archived: false,
       attrs: Object.fromEntries(attributes.map((item) => [item.key, 60])),
       pending: [],
       createdAt: new Date().toISOString(),
@@ -923,8 +1006,15 @@
       if (goPlayers) { event.preventDefault(); setScreen("players"); }
 
       if (event.target.closest("#newPlayerBtn, [data-create-player]")) openPlayerForm();
+      if (event.target.closest("#archivedPlayersBtn, [data-open-archived]")) openArchivedPlayers();
       const playerButton = event.target.closest("[data-player-id]");
       if (playerButton) openPlayer(playerButton.dataset.playerId);
+
+      const archivedPlayerButton = event.target.closest("[data-archived-player-id]");
+      if (archivedPlayerButton) {
+        $("#archivedPlayersDialog").close();
+        openPlayer(archivedPlayerButton.dataset.archivedPlayerId);
+      }
 
       const exportCardButton = event.target.closest("[data-export-card]");
       if (exportCardButton) exportPlayerCard(exportCardButton.dataset.exportCard);
@@ -934,6 +1024,12 @@
         $("#playerDialog").close();
         openPlayerForm(editButton.dataset.editPlayer);
       }
+
+      const archiveButton = event.target.closest("[data-archive-player]");
+      if (archiveButton) archivePlayer(archiveButton.dataset.archivePlayer);
+
+      const unarchiveButton = event.target.closest("[data-unarchive-player]");
+      if (unarchiveButton) unarchivePlayer(unarchiveButton.dataset.unarchivePlayer);
 
       const closeButton = event.target.closest("[data-close-dialog]");
       if (closeButton) $("#" + closeButton.dataset.closeDialog).close();
