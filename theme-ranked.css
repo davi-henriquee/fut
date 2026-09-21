@@ -1,0 +1,260 @@
+/* Visual inspirado no painel competitivo de referência. A estrutura e os comportamentos permanecem no CSS/JS originais. */
+:root {
+  color-scheme: dark;
+  --ink: #f5f7fb;
+  --muted: #aab4c3;
+  --panel: rgba(16, 21, 31, .92);
+  --panel-solid: #10151f;
+  --line: rgba(148, 163, 184, .24);
+  --green: #30f2c2;
+  --green-dark: #12aa89;
+  --red: #ff365f;
+  --gold: #f8c84e;
+  --shadow: 0 18px 50px rgba(0, 0, 0, .28);
+}
+
+body {
+  color: var(--ink);
+  background:
+    linear-gradient(135deg, rgba(48, 242, 194, .14), transparent 28rem),
+    linear-gradient(315deg, rgba(255, 54, 95, .16), transparent 27rem),
+    #07090f;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+body::before {
+  opacity: .32;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, .05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, .05) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: linear-gradient(to bottom, #000, transparent 82%);
+}
+
+.app-shell { z-index: 1; }
+
+.topbar {
+  position: relative;
+  width: min(1180px, calc(100% - 32px));
+  min-height: 112px;
+  height: auto;
+  margin: 0 auto;
+  padding: 22px 0;
+  grid-template-columns: minmax(220px, 1fr) auto minmax(170px, 1fr);
+  background: transparent;
+  border-bottom-color: var(--line);
+  backdrop-filter: none;
+}
+
+.brand { gap: 14px; }
+.brand-mark {
+  width: 58px;
+  height: 58px;
+  flex: 0 0 58px;
+  color: #06100d;
+  border: 1px solid rgba(48, 242, 194, .65);
+  border-radius: 8px;
+  background: var(--green);
+  box-shadow: 0 0 28px rgba(48, 242, 194, .2);
+  font-size: 27px;
+  transform: none;
+}
+
+.brand-copy strong { font-size: 24px; letter-spacing: -.8px; }
+.brand-copy small { margin-top: 6px; color: var(--muted); font-size: 9px; letter-spacing: 1.6px; }
+
+.desktop-nav { height: auto; gap: 8px; }
+.nav-btn {
+  height: 44px;
+  min-width: 124px;
+  padding: 0 16px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+.nav-btn::after { display: none; }
+.nav-btn:hover { color: var(--ink); border-color: var(--line); background: rgba(255, 255, 255, .04); }
+.nav-btn.active {
+  color: var(--ink);
+  border-color: var(--line);
+  background: rgba(255, 255, 255, .07);
+  box-shadow: inset 0 -2px 0 var(--green);
+}
+
+.primary-btn,
+.ghost-btn,
+.danger-btn {
+  min-height: 42px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .15px;
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, filter 160ms ease;
+}
+.primary-btn { color: #06100d; background: var(--green); box-shadow: 0 0 28px rgba(48, 242, 194, .16); }
+.primary-btn:hover { filter: brightness(1.05); }
+.ghost-btn { border-color: var(--line); background: rgba(255, 255, 255, .04); }
+.ghost-btn:hover { border-color: rgba(48, 242, 194, .45); background: rgba(48, 242, 194, .07); }
+.danger-btn { border-color: rgba(255, 54, 95, .4); color: #ff7b93; background: rgba(255, 54, 95, .09); }
+
+main { width: min(1180px, calc(100% - 32px)); padding: 32px 0 82px; }
+.hero-row { align-items: center; margin-bottom: 34px; }
+.eyebrow { margin-bottom: 8px; color: var(--green); font-size: 11px; letter-spacing: .7px; }
+h1 { margin-bottom: 12px; font-size: clamp(44px, 5vw, 64px); line-height: .96; letter-spacing: -3px; }
+.hero-copy { color: var(--muted); font-size: 15px; }
+
+.summary-strip {
+  border-color: var(--line);
+  border-radius: 8px;
+  background: rgba(16, 21, 31, .88);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(14px);
+}
+.summary-strip > div { min-width: 122px; padding: 18px 20px; }
+.summary-strip strong { color: var(--ink); font-size: 24px; }
+.summary-strip span { color: var(--muted); font-size: 9px; letter-spacing: .7px; }
+
+.section-toolbar { margin-bottom: 16px; padding-bottom: 16px; border-bottom-color: var(--line); }
+.section-toolbar h2 { font-size: 22px; }
+.section-toolbar p { color: var(--muted); font-size: 13px; }
+
+.player-list-head {
+  padding: 0 16px 9px;
+  color: var(--muted-2, #758196);
+  font-size: 9px;
+}
+.player-list-row,
+.archived-player-row,
+.match-row {
+  border-color: var(--line);
+  border-radius: 8px;
+  background: rgba(16, 21, 31, .88);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, .12);
+  backdrop-filter: blur(12px);
+}
+.player-list-row { min-height: 72px; margin-bottom: 8px; padding: 8px 16px; }
+.player-list-row:hover,
+.match-row:hover {
+  border-color: rgba(48, 242, 194, .48);
+  background: rgba(48, 242, 194, .065);
+  transform: translateY(-1px);
+}
+.player-list-row.goalkeeper-row,
+.archived-player-row.goalkeeper-row {
+  border-color: rgba(90, 200, 255, .34);
+  background: linear-gradient(90deg, rgba(40, 103, 255, .12), rgba(16, 21, 31, .9) 45%);
+}
+.player-list-row.goalkeeper-row:hover { border-color: rgba(90, 200, 255, .62); }
+.list-avatar { border-radius: 8px; border-color: rgba(148, 163, 184, .28); background: #fff; color: #0b1220; }
+.list-player-copy strong { font-size: 14px; }
+.list-player-copy span { color: var(--muted); font-size: 10px; }
+.list-stat.overall strong,
+.ovr-chip {
+  border: 1px solid rgba(48, 242, 194, .28);
+  border-radius: 999px;
+  color: var(--green);
+  background: rgba(48, 242, 194, .09);
+}
+.win-rate strong,
+.list-chevron,
+.open-chevron { color: var(--green); }
+
+.builder-empty,
+.draft-shell,
+.team-panel,
+.excluded-panel,
+.roster-panel,
+.pending-adjustment,
+.history-empty,
+.empty-state {
+  border-radius: 8px;
+}
+.builder-empty {
+  min-height: 180px;
+  border-color: rgba(48, 242, 194, .35);
+  background: linear-gradient(110deg, rgba(48, 242, 194, .1), rgba(16, 21, 31, .9) 56%, rgba(255, 54, 95, .08));
+  box-shadow: var(--shadow);
+}
+.builder-empty::after { color: rgba(48, 242, 194, .055); }
+.draft-shell { border-color: var(--line); background: rgba(16, 21, 31, .92); }
+.draft-head,
+.score-panel { border-color: var(--line); }
+.team-panel { border-color: var(--line); background: rgba(255, 255, 255, .035); }
+.team-panel.team-a,
+.roster-panel.a { border-top-color: var(--green); }
+.team-panel.team-b,
+.roster-panel.b { border-top-color: var(--red); }
+.draft-player,
+.roster-player { border-radius: 8px; background: rgba(5, 7, 12, .48); }
+.goalkeeper-icon { border-color: #10151f; }
+.versus { color: var(--green); }
+.team-score input,
+.score-field input,
+.text-input { border-color: var(--line); border-radius: 8px; background: #070a10; }
+.team-score input:focus,
+.score-field input:focus,
+.text-input:focus { border-color: rgba(48, 242, 194, .65); }
+.excluded-player { border: 1px solid rgba(148, 163, 184, .15); border-radius: 8px; }
+.score-panel { background: rgba(5, 7, 12, .32); }
+.score-badge { border: 1px solid rgba(148, 163, 184, .18); border-radius: 8px; background: rgba(255, 255, 255, .05); }
+
+.modal::backdrop { background: rgba(3, 5, 10, .84); }
+.modal-card {
+  border-color: var(--line);
+  border-radius: 10px;
+  background: #10151f;
+  box-shadow: 0 28px 90px rgba(0, 0, 0, .55);
+}
+.icon-btn { border-color: var(--line); border-radius: 8px; background: rgba(255, 255, 255, .04); }
+.photo-picker { border-color: rgba(48, 242, 194, .36); border-radius: 8px; background: rgba(48, 242, 194, .045); }
+.photo-preview { border-radius: 8px; }
+.switch { background: #2a3342; }
+.switch-row input:checked + .switch { background: rgba(48, 242, 194, .3); }
+.switch-row input:checked + .switch::after { background: var(--green); }
+.card-stage {
+  background:
+    radial-gradient(circle at 50% 38%, rgba(48, 242, 194, .15), transparent 40%),
+    linear-gradient(145deg, #07090f, #111827);
+}
+.detail-side { background: rgba(16, 21, 31, .94); }
+.pending-adjustment { border-color: rgba(248, 200, 78, .38); background: rgba(248, 200, 78, .065); }
+.adjustment-row,
+.player-history-row { border-radius: 8px; background: rgba(5, 7, 12, .38); }
+.preview-value { color: var(--green); }
+.result-status.win { color: var(--green); background: rgba(48, 242, 194, .11); }
+.result-status.loss { color: #ff6f8c; background: rgba(255, 54, 95, .11); }
+.locked-tag { color: var(--green); background: rgba(48, 242, 194, .09); }
+.toast { border-color: rgba(48, 242, 194, .32); border-radius: 8px; background: #151d2b; }
+
+.mobile-nav {
+  border-color: var(--line);
+  border-radius: 10px;
+  background: rgba(16, 21, 31, .96);
+}
+
+@media (max-width: 820px) {
+  .topbar {
+    width: min(100% - 30px, 680px);
+    min-height: 78px;
+    height: auto;
+    padding: 12px 0;
+    grid-template-columns: 1fr auto;
+  }
+  .brand-mark { width: 48px; height: 48px; flex-basis: 48px; font-size: 23px; }
+  .brand-copy strong { font-size: 21px; }
+  main { width: min(100% - 30px, 680px); padding-top: 30px; }
+  .hero-row { margin-bottom: 32px; }
+}
+
+@media (max-width: 560px) {
+  .topbar,
+  main { width: calc(100% - 20px); }
+  h1 { font-size: 44px; letter-spacing: -2.5px; }
+  .summary-strip { box-shadow: 0 12px 34px rgba(0, 0, 0, .2); }
+  .player-list-row { border-radius: 8px; }
+  .toolbar-actions > * { min-width: calc(50% - 5px); }
+  .mobile-nav { left: 10px; right: 10px; bottom: 10px; }
+}
