@@ -280,9 +280,7 @@
     const grid = $("#playerGrid");
     const players = activePlayers();
     const archived = archivedPlayers();
-    const pendingTotal = players.reduce((sum, player) => sum + player.pending.length, 0);
     $("#playerCount").textContent = players.length;
-    $("#pendingCount").textContent = pendingTotal;
     $("#squadAverage").textContent = players.length
       ? formatOverall(players.reduce((sum, player) => sum + overall(player), 0) / players.length)
       : "—";
