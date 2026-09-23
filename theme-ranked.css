@@ -1,4 +1,4 @@
-/* EXP-FUT — direção visual inspirada no ecossistema EA SPORTS FC. */
+/* FUTEX — direção visual inspirada no ecossistema EA SPORTS FC. */
 :root {
   color-scheme: light;
   --ink: #161616;
@@ -56,14 +56,15 @@ body::before { display: none; }
   color: #080808;
   border: 0;
   border-radius: 0;
-  background: #fff;
+  background: #080808;
   box-shadow: none;
   font-family: Arial, sans-serif;
   font-size: 25px;
   font-style: italic;
-  transform: skew(-7deg);
-  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  transform: none;
+  clip-path: none;
 }
+.brand-mark img { width: 100%; height: 100%; display: block; object-fit: contain; }
 
 .brand-copy strong {
   color: #fff;
@@ -137,7 +138,7 @@ main { width: 100%; margin: 0; padding: 0 0 92px; }
   transform: skew(-18deg);
 }
 .hero-row::after {
-  content: "EXP";
+  content: "FX";
   position: absolute;
   z-index: -1;
   top: 50%;

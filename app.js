@@ -1,7 +1,8 @@
 (() => {
   "use strict";
 
-  const STORAGE_KEY = "exp-fut-data-v1";
+  const STORAGE_KEY = "futex-data-v1";
+  const LEGACY_STORAGE_KEY = "exp-fut-data-v1";
   const FIELD_ATTRIBUTES = [
     { key: "velocidade", label: "Velocidade", short: "VEL" },
     { key: "chute", label: "Chute", short: "CHU" },
@@ -45,7 +46,8 @@
 
   function loadState() {
     try {
-      const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY));
+      const stored = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
+      const parsed = JSON.parse(stored);
       if (!parsed || !Array.isArray(parsed.players) || !Array.isArray(parsed.matches)) return emptyState();
       parsed.players = parsed.players.map((player) => ({
         ...player,
@@ -75,7 +77,7 @@
 
   function exportBackup() {
     const backup = {
-      application: "EXP-FUT",
+      application: "FUTEX",
       version: 1,
       exportedAt: new Date().toISOString(),
       data: state,
@@ -182,7 +184,7 @@
       setScreen("players");
       showToast("Backup importado com sucesso.");
     } catch {
-      showToast("Este arquivo não é um backup válido do EXP-FUT.", true);
+      showToast("Este arquivo não é um backup válido do FUTEX.", true);
     } finally {
       $("#importDataInput").value = "";
     }
@@ -254,7 +256,7 @@
         <div class="player-photo">${photoMarkup(player)}</div>
         <div class="card-name">${escapeHtml(player.name)}</div>
         <div class="${large ? "card-attributes" : "mini-stats"}">${statMarkup}</div>
-        ${large ? `<div class="card-export-date">EXP-FUT · ${exportDateLabel()}</div>` : ""}
+        ${large ? `<div class="card-export-date">FUTEX · ${exportDateLabel()}</div>` : ""}
       </article>`;
   }
 
@@ -313,7 +315,7 @@
                 <span class="list-avatar">${photoMarkup(player, true)}</span>
                 ${player.pending.length ? `<span class="list-pending-star" title="${player.pending.length} ajuste(s) pendente(s)">*<small>${player.pending.length}</small></span>` : ""}
               </span>
-              <span class="list-player-copy"><strong>${escapeHtml(player.name)}</strong><span>${player.goalkeeper ? "Goleiro" : tierFor(overall(player)).name}</span></span>
+              <span class="list-player-copy"><strong>${escapeHtml(player.name)}</strong><span>${tierFor(overall(player)).name}</span></span>
             </span>
             <span class="list-stat overall"><small>Overall</small><strong>${formatOverall(overall(player))}</strong></span>
             <span class="list-stat"><small>Partidas</small><strong>${stats.matches}</strong></span>
@@ -338,7 +340,7 @@
         <div class="archived-player-row ${player.goalkeeper ? "goalkeeper-row" : ""}">
           <button class="archived-player-open" data-archived-player-id="${player.id}" aria-label="Abrir carta de ${escapeHtml(player.name)}">
             <span class="list-avatar">${photoMarkup(player, true)}</span>
-            <span class="list-player-copy"><strong>${escapeHtml(player.name)}</strong><span>${player.goalkeeper ? "Goleiro" : tierFor(overall(player)).name} · ${formatOverall(overall(player))} OVR · ${stats.matches} ${stats.matches === 1 ? "partida" : "partidas"}</span></span>
+            <span class="list-player-copy"><strong>${escapeHtml(player.name)}</strong><span>${tierFor(overall(player)).name} · ${formatOverall(overall(player))} OVR · ${stats.matches} ${stats.matches === 1 ? "partida" : "partidas"}</span></span>
           </button>
           <button class="primary-btn restore-player-btn" data-unarchive-player="${player.id}">Restaurar</button>
         </div>`;
@@ -424,7 +426,7 @@
         <div class="detail-side">
           <div class="detail-title detail-title-row">
             <div>
-              <p class="eyebrow">${player.archived ? "ARQUIVADO · " : ""}${player.goalkeeper ? "GOLEIRO" : "JOGADOR DE LINHA"}</p>
+              <p class="eyebrow">${player.archived ? "ARQUIVADO · " : ""}JOGADOR</p>
               <h2>${escapeHtml(player.name)}</h2>
               <p>Carta ${tier.name} · Overall ${formatOverall(overall(player))} · ${history.length} ${history.length === 1 ? "partida" : "partidas"}</p>
             </div>
@@ -573,11 +575,11 @@
           <div>
             <p class="eyebrow">MONTAGEM AUTOMÁTICA</p>
             <h2>Pronto para a próxima?</h2>
-            <p>O EXP-FUT compara o overall de todo o elenco e distribui os jogadores entre dois lados com a menor diferença possível.</p>
+            <p>O FUTEX compara o overall de todo o elenco e distribui os jogadores entre dois lados com a menor diferença possível.</p>
             ${players.length % 2 === 1 && players.length > 1 ? `<p class="builder-warning">Seu elenco ativo tem número ímpar; um lado ficará com um jogador a mais até você ajustar.</p>` : ""}
             ${players.length >= 2 && goalkeeperCount < 2 ? `<p class="builder-warning">Mantenha pelo menos dois goleiros ativos para garantir um em cada lado.</p>` : ""}
           </div>
-          <button class="primary-btn" data-generate-match ${canGenerate ? "" : "disabled"}>⚡ Gerar partida</button>
+          <button class="primary-btn" data-generate-match ${canGenerate ? "" : "disabled"}>Gerar partida</button>
         </div>`;
       return;
     }
@@ -637,7 +639,7 @@
           ${players.length ? players.map((player) => `
             <div class="draft-player ${player.goalkeeper ? "goalkeeper-player" : ""}">
               <span class="team-avatar-wrap"><span class="avatar">${photoMarkup(player, true)}</span>${player.goalkeeper ? `<span class="goalkeeper-icon" title="Goleiro" aria-label="Goleiro">🧤</span>` : ""}</span>
-              <span class="draft-player-copy"><strong>${escapeHtml(player.name)}</strong><span>${player.goalkeeper ? "Goleiro" : tierFor(overall(player)).name}</span></span>
+              <span class="draft-player-copy"><strong>${escapeHtml(player.name)}</strong><span>${tierFor(overall(player)).name}</span></span>
               <span class="ovr-chip">${formatOverall(overall(player))}</span>
               <span class="row-actions">
                 <button class="mini-action" data-move-player="${player.id}" data-from="${side}" title="Mover para o Lado ${destination}" aria-label="Mover ${escapeHtml(player.name)} para o lado ${destination}">→</button>
@@ -897,7 +899,7 @@
   function updateHeaderAction() {
     const action = $("#headerAction");
     const matchesActive = document.body.dataset.screen === "matches";
-    action.textContent = matchesActive ? (state.draft ? "Ver escalação" : "⚡ Gerar partida") : "+ Novo jogador";
+    action.textContent = matchesActive ? (state.draft ? "Ver escalação" : "Gerar partida") : "+ Novo jogador";
   }
 
   function openPlayerForm(playerId = null) {
